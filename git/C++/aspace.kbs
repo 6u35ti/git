@@ -1,0 +1,177 @@
+B&l
+
+left = 16777234
+right = 16777236
+down = 16777237
+up = 16777235
+shoot = 32
+
+alive=0
+exploding=1
+dead=2
+
+screenWidth=300
+screenHeight=300
+playerSize=20
+playerx=(screenWidth-playerSize)/2
+playery= screenHeight - playerSize
+
+numStars=15
+Dim starsx(numStars)
+Dim starsy(numStars)
+
+numBorg=1
+Dim borgx(numBorg)
+Dim borgy(numBorg)
+Dim borgs(numBorg)
+Dim btorx(numBorg)
+Dim btory(numBorg)
+
+torpedo = -1
+torpedox = 0
+
+lives = 3
+
+extraLifeAfter = 30
+numDestroyedCubes = 0
+
+score = 0
+
+setup:
+  for i = 0 to numStars - 1
+     starsx[i] = Floor( screenWidth * Rand)
+     starsy[i] = Floor( screenHeight * Rand)
+  next i
+  lives = 3
+  gosub attack
+  gosub mainloop
+  return
+
+mainloop:
+
+  a = key
+  if ( a = left and playerx > 0 ) then playerx = playerx - 2
+  if ( a = right and playerx < screenWidth - playerSize ) then playerx = playerx + 2
+  if ( a = up and playery > 0 ) then playery = playery - 2
+  if ( a = down and playery < screenHeight - playerSize) then playery = playery + 2
+  if ( a = shoot and torpedo < 0 ) then gosub fire
+
+  gosub updateWorld
+  gosub paint
+  goto mainloop
+
+updateWorld:
+  # move stars
+  for i = 0 to numStars - 1
+     starsy[i] = starsy[i] + 1
+     if starsy[i] > screenHeight then starsy[i] = 0
+  next i
+
+  # move borg
+  for i = 0 to numBorg - 1
+     if borgs[i] = exploding then borgs[i] = dead
+     borgy[i] = borgy[i] + 1
+     if borgy[i] > 50 then borgy[i] = 50
+     explodingBorg = i
+     # check if we hit a cube
+     if borgs[i] = alive and torpedo > borgy[i] and torpedo < borgy[i] + playerSize and torpedox > borgx[i] and torpedox < borgx[i] + playerSize then borgs[explodingBorg]=exploding :  gosub cubeDestroyed
+
+     # decide if this cube will shoot now
+     if borgs[i] = alive and btory[i] >= screenHeight and rand < 0.004 then btory[i] = borgy[i]+playerSize + 10
+     # move borg torpedoes
+     if btory[i] < screenHeight then btory[i] = btory[i] + 1
+     # have we been hit
+     if btory[i] < (playery + playerSize) and btory[i] > playery and btorx[i] > playerx and btorx[i] < (playerx + playerSize) then btory[i] = screenHeight + 1 : goto killed
+  next i
+ 
+ 
+  # move the torpedo
+  if torpedo > -1 then torpedo = torpedo - 2
+ 
+  # if all borg are dead, attack again
+  countDead = 0
+  for i = 0 to numBorg - 1
+    if borgs[i] = dead then countDead = countDead + 1
+  next i
+  if countDead = numBorg then gosub attack
+  return
+
+paint:
+  Fastgraphics
+  # draw background
+  color black
+  Rect 0,0,screenWidth, screenHeight
+  # draw stars
+  color white
+  for i = 0 to numStars - 1
+     plot starsx[i], starsy[i]
+  next i
+  # draw borg and card
+  color green
+  for i = 0 to numBorg - 1
+     if borgs[i] = alive then color green : rect borgx[i], borgy[i], playerSize, playerSize
+     if borgs[i] = exploding then color red : rect borgx[i], borgy[i], playerSize, playerSize
+  next i
+  # draw player
+  color blue
+  rect playerx, playery, playerSize, playerSize
+  # draw torpedo
+  color red
+  line torpedox, torpedo, torpedox, torpedo - 10
+
+  # draw borg torpedoes
+  color green
+  for i = 0 to numBorg - 1
+    if btory[i] < screenHeight then line btorx[i], btory[i], btorx[i], btory[i]- 10
+  next i
+  refresh
+  return
+
+fire:
+  torpedox = playerx + playerSize /2
+  torpedo = playery
+  return
+
+attack:
+  print "Level " + String(numBorg)
+  numBorg = numBorg + 1
+  Dim borgx(numBorg)
+  Dim borgy(numBorg)
+  Dim borgs(numBorg)
+  Dim btorx(numBorg)
+  Dim btory(numBorg)
+  for i = 0 to numBorg - 1
+     borgx[i] = Floor( (screenWidth - playerSize) * Rand)
+     borgy[i] = -20
+     borgs[i] = alive
+     btorx[i] = borgx[i] + playerSize / 2
+     btory[i] = screenHeight
+  next i
+  return
+
+cubeDestroyed:
+  torpedo = -1
+  score = score + 10 + numBorg
+  print "Score: " + String (score)
+  # extra life?
+  numDestroyedCubes = numDestroyedCubes + 1
+  if numDestroyedCubes >= extraLifeAfter then gosub extralife
+  return
+
+extralife:
+  lives = lives + 1
+  numDestroyedCubes = 0
+  print "You've got an etra life! Lives left: " + String(lives)
+  return
+
+killed:
+  print "You have been hit!"
+  lives = lives - 1
+  if lives = 0 then goto endgame
+  print "Lives left: " + String(lives)
+  return
+
+endgame:
+  print "You have been killed on Level " + String (numBorg-1)
+  print "Your score was " + String (score)
+  end

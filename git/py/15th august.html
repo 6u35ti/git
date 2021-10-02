@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6u35t</title>
+    <link rel="stylesheet" href="15th.css">
+</head>
+
+<body onload="setInterval(changeColor, 1000)">
+
+    <div id="a">
+        <div class="item" >15th Augest</div>
+        <div  class="item1">Happy<br>Independence<br>Day</div>
+    </div>
+
+    <script type="text/javascript">
+
+        function changeColor() {
+            var x = document.getElementById("a");
+            if (x.style.color == "orange")
+                x.style.color = "white";
+            else if (x.style.color == "white")
+                x.style.color = "green";
+            else if (x.style.color == "green")
+                x.style.color = "orange";
+            else x.style.color = "orange";
+        }
+    </script>
+</body>
+
+</html>

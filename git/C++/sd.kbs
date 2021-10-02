@@ -1,0 +1,25 @@
+#Draw patterb using fibocacci
+clg
+cls
+a=0
+b=1
+c=2
+color yellow
+rect 0, 0, 300, 300
+while b < 1000
+ n=a+b
+ a=b
+ b=n
+gosub fibonacci_draw
+endwhile
+
+fibonacci_draw:
+ for i=a to b
+  color red 
+  line i,i,i,a
+  line a,b,i,i
+  
+
+  
+ next i 
+return
